@@ -106,6 +106,13 @@ class WatchElement:
         elif self.obj.__class__.__module__ == "builtins":
             return self.obj != other
         else:
+            import torch
+            if isinstance(self.obj, torch.Tensor):
+                # Check if tensors have the same shape
+                if self.obj.shape != other.shape:
+                    return True  # Tensors have different sizes
+                # Use torch.equal for tensor comparison
+                return not torch.equal(self.obj, other)
             guess = self.obj.__eq__(other)
             if guess is NotImplemented:
                 if self.deepcopy:
@@ -114,6 +121,8 @@ class WatchElement:
                         f"You need to define __eq__ method for {self.obj.__class__}")
                 return self.obj.__dict__ != other.__dict__
             else:
+                # print(self.obj, other)
+                # print("guess", guess)
                 return not guess
 
     def update(self):
